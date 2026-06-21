@@ -1,4 +1,5 @@
 import { prisma } from '../config/db.js';
+import { evaluarYDesbloquearLogros } from './gamificacion.controller.js';
 
 export const actualizarProgreso = async (req, res) => {
   try {
@@ -38,9 +39,12 @@ export const actualizarProgreso = async (req, res) => {
       }
     });
 
+    const nuevosLogros = await evaluarYDesbloquearLogros(req.usuario.id);
+
     return res.status(200).json({
       mensaje: 'Progreso de lectura actualizado con éxito.',
-      progreso: progresoActualizado
+      progreso: progresoActualizado,
+      logros_desbloqueados: nuevosLogros
     });
 
   } catch (error) {
@@ -81,9 +85,12 @@ export const registrarSesionLectura = async (req, res) => {
       }
     });
 
+    const nuevosLogros = await evaluarYDesbloquearLogros(req.usuario.id);
+
     return res.status(201).json({
       mensaje: 'Sesión de lectura registrada con éxito.',
-      sesion: nuevaSesion
+      sesion: nuevaSesion,
+      logros_desbloqueados: nuevosLogros
     });
 
   } catch (error) {

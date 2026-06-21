@@ -1,5 +1,6 @@
 import { prisma } from '../config/db.js';
 import { subirArchivo, eliminarArchivo } from '../services/storage.service.js';
+import { evaluarYDesbloquearLogros } from './gamificacion.controller.js';
 
 export const subirArchivoPersonal = async (req, res) => {
   try {
@@ -92,9 +93,12 @@ export const subirArchivoPersonal = async (req, res) => {
       return nuevoProgreso;
     });
 
+    const nuevosLogros = await evaluarYDesbloquearLogros(req.usuario.id);
+
     return res.status(201).json({
       mensaje: `${tipo === 'libro' ? 'Libro' : 'Documento'} subido y agregado a tu biblioteca con éxito.`,
-      progreso: resultado
+      progreso: resultado,
+      logros_desbloqueados: nuevosLogros
     });
 
   } catch (error) {
@@ -391,9 +395,12 @@ export const importarDesdeGutendex = async (req, res) => {
       return nuevoProgreso;
     });
 
+    const nuevosLogros = await evaluarYDesbloquearLogros(req.usuario.id);
+
     return res.status(201).json({
       mensaje: 'Libro de Project Gutenberg importado con éxito a tu biblioteca.',
-      progreso: resultado
+      progreso: resultado,
+      logros_desbloqueados: nuevosLogros
     });
 
   } catch (error) {

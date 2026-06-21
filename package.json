@@ -17,6 +17,7 @@
     "test-gutendex": "node --env-file=.env tests/probar-gutendex.js",
     "test-progreso": "node --env-file=.env tests/probar-progreso.js",
     "test-meta": "node --env-file=.env tests/probar-meta.js",
+    "test-logros": "node --env-file=.env tests/probar-logros.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
