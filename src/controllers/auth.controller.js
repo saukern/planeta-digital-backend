@@ -162,3 +162,54 @@ export const autenticacionGoogle = async (req, res) => {
     return res.status(500).json({ error: 'Error interno del servidor en autenticación Google' });
   }
 };
+
+export const login = async (req, res) => {
+  try {
+    const { correo, password } = req.body;
+
+    if (!correo || !password) {
+      return res.status(400).json({ error: 'El correo y la contraseña son obligatorios' });
+    }
+
+    const usuario = await prisma.usuario.findUnique({
+      where: { correo }
+    });
+
+    if (!usuario || usuario.estado === 'INACTIVE') {
+      return res.status(401).json({ error: 'Credenciales incorrectas' });
+    }
+
+    if (usuario.proveedor === 'GOOGLE') {
+      return res.status(400).json({ 
+        error: 'Esta cuenta está registrada con Google. Por favor, inicia sesión con Google.' 
+      });
+    }
+
+    const passwordCorrecto = await bcrypt.compare(password, usuario.password);
+    if (!passwordCorrecto) {
+      return res.status(401).json({ error: 'Credenciales incorrectas' });
+    }
+
+    const token = jwt.sign(
+      {
+        id: usuario.id,
+        nombre_usuario: usuario.nombre_usuario,
+        rol: usuario.rol
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: '24h' }
+    );
+
+    const { password: _, ...usuarioSinPassword } = usuario;
+
+    return res.status(200).json({
+      mensaje: 'Inicio de sesión exitoso',
+      usuario: usuarioSinPassword,
+      token
+    });
+
+  } catch (error) {
+    console.error('Error en login:', error);
+    return res.status(500).json({ error: 'Error interno del servidor al procesar el inicio de sesión' });
+  }
+};
