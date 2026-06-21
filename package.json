@@ -6,8 +6,9 @@
   "scripts": {
     "dev": "node --watch --env-file=.env src/app.js",
     "start": "node --env-file=.env src/app.js",
-    "test-db": "node --env-file=.env src/probar-conexion.js",
-    "test-prisma": "node --env-file=.env src/probar-prisma.js",
+    "test-db": "node --env-file=.env tests/probar-conexion.js",
+    "test-prisma": "node --env-file=.env tests/probar-prisma.js",
+    "test-registro": "node --env-file=.env tests/probar-registro.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -24,7 +25,9 @@
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
+    "bcryptjs": "^3.0.3",
     "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
     "pg": "^8.22.0"
   },
   "devDependencies": {
