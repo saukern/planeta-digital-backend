@@ -4,7 +4,8 @@ import {
 	subirArchivoPersonal,
 	obtenerBiblioteca,
 	editarArchivo,
-	eliminarDeBiblioteca
+	eliminarDeBiblioteca,
+	importarDesdeGutendex
 } from '../controllers/biblioteca.controller.js';
 import { autenticarToken } from '../middlewares/auth.middleware.js';
 
@@ -26,5 +27,6 @@ router.post('/subir', upload.fields([
 ]), subirArchivoPersonal);
 router.put('/archivo/:id', editarArchivo);
 router.delete('/:id', eliminarDeBiblioteca);
+router.post('/importar-gutendex', importarDesdeGutendex);
 
 export default router;

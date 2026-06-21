@@ -14,6 +14,7 @@
     "test-middleware": "node --env-file=.env tests/probar-middleware.js",
     "test-desactivacion": "node --env-file=.env tests/probar-desactivacion.js",
     "test-biblioteca": "node --env-file=.env tests/probar-biblioteca.js",
+    "test-gutendex": "node --env-file=.env tests/probar-gutendex.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

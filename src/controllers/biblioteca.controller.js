@@ -272,3 +272,133 @@ export const eliminarDeBiblioteca = async (req, res) => {
     return res.status(500).json({ error: 'Error interno del servidor al quitar el libro.' });
   }
 };
+
+export const importarDesdeGutendex = async (req, res) => {
+  try {
+    const { gutenbergId } = req.body;
+
+    if (!gutenbergId) {
+      return res.status(400).json({ error: 'El gutenbergId es obligatorio.' });
+    }
+
+    // 1. Obtener metadatos de la API de Gutendex
+    const responseMeta = await fetch(`https://gutendex.com/books/${gutenbergId}`);
+    if (!responseMeta.ok) {
+      return res.status(404).json({ error: 'Libro no encontrado en Project Gutenberg.' });
+    }
+    const bookData = await responseMeta.json();
+
+    // 2. Extraer metadatos
+    const titulo = bookData.title || 'Título Desconocido';
+    const autor = bookData.authors && bookData.authors.length > 0
+      ? bookData.authors.map(a => a.name).join(', ')
+      : 'Autor Desconocido';
+    const genero = bookData.subjects && bookData.subjects.length > 0
+      ? bookData.subjects.slice(0, 2).join(', ')
+      : 'General';
+
+    // Buscar formato de tipo EPUB
+    const formats = bookData.formats || {};
+    const epubKey = Object.keys(formats).find(key => key.toLowerCase().includes('epub'));
+    const epubUrl = epubKey ? formats[epubKey] : null;
+
+    if (!epubUrl) {
+      return res.status(400).json({ error: 'El libro no tiene un formato EPUB disponible para descargar.' });
+    }
+
+    // Buscar formato de tipo imagen (portada)
+    const imageKey = Object.keys(formats).find(key => key.toLowerCase().includes('image/jpeg') || key.toLowerCase().includes('image/png'));
+    const rawImageUrl = imageKey ? formats[imageKey] : null;
+
+    // 3. Descargar el archivo EPUB en memoria
+    const responseFile = await fetch(epubUrl);
+    if (!responseFile.ok) {
+      return res.status(500).json({ error: 'Error al descargar el archivo EPUB desde Project Gutenberg.' });
+    }
+
+    const arrayBuffer = await responseFile.arrayBuffer();
+    const fileBuffer = Buffer.from(arrayBuffer);
+    const fileName = `gutenberg-${gutenbergId}.epub`;
+    const mimeType = 'application/epub+zip';
+
+    // 4. Subir el archivo EPUB a Supabase Storage
+    let urlNube;
+    try {
+      urlNube = await subirArchivo(fileBuffer, fileName, mimeType);
+    } catch (uploadError) {
+      console.error('Error al subir libro importado a Supabase:', uploadError);
+      return res.status(500).json({ error: 'Error al guardar el archivo en el almacenamiento en la nube.' });
+    }
+
+    // 4b. Descargar y subir la portada (opcional) a Supabase Storage
+    let urlPortada = null;
+    if (rawImageUrl) {
+      try {
+        const responseImg = await fetch(rawImageUrl);
+        if (responseImg.ok) {
+          const imgArrayBuffer = await responseImg.arrayBuffer();
+          const imgBuffer = Buffer.from(imgArrayBuffer);
+          const imgExt = rawImageUrl.split('.').pop() || 'jpg';
+          const imgMime = responseImg.headers.get('content-type') || 'image/jpeg';
+          urlPortada = await subirArchivo(imgBuffer, `gutenberg-cover-${gutenbergId}.${imgExt}`, imgMime);
+        }
+      } catch (imgError) {
+        console.error('Error al descargar/subir la portada de Gutenberg, usando enlace directo:', imgError);
+        urlPortada = rawImageUrl; // Fallback al enlace externo directo
+      }
+    }
+
+    // 5. Guardar en Base de Datos
+    const resultado = await prisma.$transaction(async (tx) => {
+      // Crear registro de archivo
+      const nuevoArchivo = await tx.archivo.create({
+        data: {
+          titulo,
+          url_nube: urlNube,
+          url_portada: urlPortada,
+          formato: 'EPUB'
+        }
+      });
+
+      // Crear registro de libro
+      await tx.libro.create({
+        data: {
+          id: nuevoArchivo.id,
+          autor,
+          genero
+        }
+      });
+
+      // Crear progreso asociado al usuario
+      const nuevoProgreso = await tx.progresoUsuario.create({
+        data: {
+          usuario_id: req.usuario.id,
+          archivo_id: nuevoArchivo.id,
+          pagina_actual: 0,
+          estado_lectura: 'WANT_TO_READ',
+          agregado_en: new Date()
+        },
+        include: {
+          archivo: {
+            include: {
+              libro: true,
+              documento: true
+            }
+          }
+        }
+      });
+
+      return nuevoProgreso;
+    });
+
+    return res.status(201).json({
+      mensaje: 'Libro de Project Gutenberg importado con éxito a tu biblioteca.',
+      progreso: resultado
+    });
+
+  } catch (error) {
+    console.error('Error al importar desde Gutendex:', error);
+    return res.status(500).json({ error: 'Error interno del servidor al importar el libro.' });
+  }
+};
+
