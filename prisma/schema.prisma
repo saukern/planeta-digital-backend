@@ -26,10 +26,11 @@ model Usuario {
 
 // 2. Biblioteca Pública (Información compartida)
 model Archivo {
-  id       Int      @id @default(autoincrement())
-  titulo   String   @db.VarChar(255)
-  url_nube String   @db.Text
-  formato  String   @db.VarChar(50) // EPUB, PDF, OTRO
+  id          Int      @id @default(autoincrement())
+  titulo      String   @db.VarChar(255)
+  url_nube    String   @db.Text
+  url_portada String?  @db.Text
+  formato     String   @db.VarChar(50) // EPUB, PDF, OTRO
 
   libro            Libro?
   documento        Documento?

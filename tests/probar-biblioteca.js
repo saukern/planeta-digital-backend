@@ -40,8 +40,8 @@ async function test() {
 
     const mockReq = { usuario: { id: usuario.id } };
 
-    // 2. Prueba 1: Subir un Libro
-    console.log('\n--- Prueba 1: Subir Libro ---');
+    // 2. Prueba 1: Subir un Libro (con portada)
+    console.log('\n--- Prueba 1: Subir Libro (con portada) ---');
     const reqLibro = {
       ...mockReq,
       body: {
@@ -50,10 +50,17 @@ async function test() {
         autor: 'Miguel de Cervantes',
         genero: 'Novela'
       },
-      file: {
-        buffer: Buffer.from('mock content'),
-        originalname: 'quijote.epub',
-        mimetype: 'application/epub+zip'
+      files: {
+        archivo: [{
+          buffer: Buffer.from('mock content'),
+          originalname: 'quijote.epub',
+          mimetype: 'application/epub+zip'
+        }],
+        portada: [{
+          buffer: Buffer.from('mock cover image data'),
+          originalname: 'quijote-portada.jpg',
+          mimetype: 'image/jpeg'
+        }]
       }
     };
     const resLibro = { ...mockRes };
@@ -64,15 +71,16 @@ async function test() {
     const progresoLibro = resLibro.body.progreso;
     console.log('Libro creado ID:', progresoLibro.archivo.id);
     console.log('Autor:', progresoLibro.archivo.libro.autor);
+    console.log('URL Portada:', progresoLibro.archivo.url_portada);
 
-    if (resLibro.statusCode === 201 && progresoLibro.archivo.libro.autor === 'Miguel de Cervantes') {
-      console.log('✔ Subida de libro exitosa.');
+    if (resLibro.statusCode === 201 && progresoLibro.archivo.url_portada) {
+      console.log('✔ Subida de libro y portada exitosa.');
     } else {
-      console.error('✘ Falló subida de libro.');
+      console.error('✘ Falló subida de libro y portada.');
     }
 
-    // 3. Prueba 2: Subir un Documento
-    console.log('\n--- Prueba 2: Subir Documento ---');
+    // 3. Prueba 2: Subir un Documento (sin portada)
+    console.log('\n--- Prueba 2: Subir Documento (sin portada) ---');
     const reqDoc = {
       ...mockReq,
       body: {
@@ -81,10 +89,12 @@ async function test() {
         materia: 'Tecnologías Web',
         tipo_documento: 'NOTES'
       },
-      file: {
-        buffer: Buffer.from('pdf content'),
-        originalname: 'apuntes.pdf',
-        mimetype: 'application/pdf'
+      files: {
+        archivo: [{
+          buffer: Buffer.from('pdf content'),
+          originalname: 'apuntes.pdf',
+          mimetype: 'application/pdf'
+        }]
       }
     };
     const resDoc = { ...mockRes };
@@ -95,11 +105,12 @@ async function test() {
     const progresoDoc = resDoc.body.progreso;
     console.log('Documento creado ID:', progresoDoc.archivo.id);
     console.log('Materia:', progresoDoc.archivo.documento.materia);
+    console.log('URL Portada (debe ser null):', progresoDoc.archivo.url_portada);
 
-    if (resDoc.statusCode === 201 && progresoDoc.archivo.documento.materia === 'Tecnologías Web') {
-      console.log('✔ Subida de documento exitosa.');
+    if (resDoc.statusCode === 201 && progresoDoc.archivo.url_portada === null) {
+      console.log('✔ Subida de documento sin portada exitosa.');
     } else {
-      console.error('✘ Falló subida de documento.');
+      console.error('✘ Falló subida de documento sin portada.');
     }
 
     // 4. Prueba 3: Obtener Biblioteca

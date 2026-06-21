@@ -4,7 +4,8 @@ import { subirArchivo, eliminarArchivo } from '../services/storage.service.js';
 export const subirArchivoPersonal = async (req, res) => {
   try {
     const { tipo, titulo, autor, genero, materia, tipo_documento } = req.body;
-    const archivo = req.file;
+    const archivo = req.files && req.files.archivo && req.files.archivo[0];
+    const portada = req.files && req.files.portada && req.files.portada[0];
 
     if (!tipo || !titulo || !archivo) {
       return res.status(400).json({ error: 'El tipo, título y archivo son obligatorios.' });
@@ -25,6 +26,19 @@ export const subirArchivoPersonal = async (req, res) => {
       return res.status(500).json({ error: 'Error al subir el archivo al almacenamiento en la nube.' });
     }
 
+    // 1b. Subir portada si fue proporcionada
+    let urlPortada = null;
+    if (portada) {
+      try {
+        urlPortada = await subirArchivo(portada.buffer, portada.originalname, portada.mimetype);
+      } catch (uploadError) {
+        console.error('Error al subir la portada a la nube:', uploadError);
+        // Limpiamos el archivo principal para no dejar basura si falla la portada
+        await eliminarArchivo(urlNube);
+        return res.status(500).json({ error: 'Error al subir la imagen de portada a la nube.' });
+      }
+    }
+
     // 2. Transacción en la base de datos para guardar la herencia y asociarla al usuario
     const resultado = await prisma.$transaction(async (tx) => {
       // A. Crear registro en la tabla común 'archivos'
@@ -32,6 +46,7 @@ export const subirArchivoPersonal = async (req, res) => {
         data: {
           titulo,
           url_nube: urlNube,
+          url_portada: urlPortada,
           formato
         }
       });
@@ -113,7 +128,7 @@ export const obtenerBiblioteca = async (req, res) => {
 export const editarArchivo = async (req, res) => {
   try {
     const { id } = req.params; // ID del archivo (archivo_id)
-    const { titulo, autor, genero, materia, tipo_documento } = req.body;
+    const { titulo, autor, genero, materia, tipo_documento, url_portada } = req.body;
 
     const archivoId = Number(id);
 
@@ -132,10 +147,11 @@ export const editarArchivo = async (req, res) => {
     // Actualizar datos comunes en la tabla 'archivos'
     const datosActualizar = {};
     if (titulo) datosActualizar.titulo = titulo;
+    if (url_portada !== undefined) datosActualizar.url_portada = url_portada;
 
     const resultado = await prisma.$transaction(async (tx) => {
       let archivoActualizado = null;
-      if (titulo) {
+      if (Object.keys(datosActualizar).length > 0) {
         archivoActualizado = await tx.archivo.update({
           where: { id: archivoId },
           data: datosActualizar
@@ -236,8 +252,11 @@ export const eliminarDeBiblioteca = async (req, res) => {
           where: { id: archivoId }
         });
         
-        // Borrar el archivo de Supabase Storage en segundo plano
+        // Borrar el archivo y la portada de Supabase Storage
         await eliminarArchivo(archivo.url_nube);
+        if (archivo.url_portada) {
+          await eliminarArchivo(archivo.url_portada);
+        }
         archivoEliminadoFisicamente = true;
       }
     }
