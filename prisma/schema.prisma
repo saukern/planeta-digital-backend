@@ -1,0 +1,140 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// 1. Identidad
+model Usuario {
+  id             Int       @id @default(autoincrement())
+  nombre_usuario String    @unique @db.VarChar(255)
+  correo         String    @unique @db.VarChar(255)
+  password       String?   @db.VarChar(255)
+  creado_en      DateTime  @default(now())
+  proveedor      String    @db.VarChar(50) // LOCAL, GOOGLE
+  rol            String    @default("USER") @db.VarChar(50) // ADMIN, USER
+  estado         String    @default("ACTIVE") @db.VarChar(50) // ACTIVE, INACTIVE
+
+  progreso_usuario  ProgresoUsuario[]
+  metas_literarias  MetaLiteraria[]
+  logros_usuario    LogroUsuario[]
+
+  @@map("usuarios")
+}
+
+// 2. Biblioteca Pública (Información compartida)
+model Archivo {
+  id       Int      @id @default(autoincrement())
+  titulo   String   @db.VarChar(255)
+  url_nube String   @db.Text
+  formato  String   @db.VarChar(50) // EPUB, PDF, OTRO
+
+  libro            Libro?
+  documento        Documento?
+  progreso_usuario ProgresoUsuario[]
+
+  @@map("archivos")
+}
+
+// 3. Especialización de Archivos (Herencia JOINED mediante relación 1 a 1)
+model Libro {
+  id      Int     @id
+  archivo Archivo @relation(fields: [id], references: [id], onDelete: Cascade)
+  autor   String  @db.VarChar(255)
+  genero  String  @db.VarChar(255)
+
+  @@map("libros")
+}
+
+model Documento {
+  id             Int     @id
+  archivo        Archivo @relation(fields: [id], references: [id], onDelete: Cascade)
+  materia        String  @db.VarChar(255)
+  tipo_documento String  @db.VarChar(100) // DIAPOSITIVAS, TAREA, NOTAS, OTRO
+
+  @@map("documentos")
+}
+
+// 4. EL PUENTE: Mi Biblioteca Personal
+model ProgresoUsuario {
+  id                    Int      @id @default(autoincrement())
+  usuario_id            Int
+  archivo_id            Int
+  pagina_actual         Int      @default(0)
+  estado_lectura        String   @db.VarChar(50) // QUIERO_LEER, LEYENDO, TERMINADO
+  calificacion_personal Int?
+  resena_personal       String?  @db.Text
+  agregado_en           DateTime @default(now())
+
+  usuario          Usuario         @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
+  archivo          Archivo         @relation(fields: [archivo_id], references: [id], onDelete: Cascade)
+  sesiones_lectura SesionLectura[]
+  anotaciones      Anotacion[]
+
+  @@map("progreso_usuario")
+}
+
+// 5. Actividad y Notas (Vinculadas al progreso personal)
+model SesionLectura {
+  id                  Int      @id @default(autoincrement())
+  progreso_usuario_id Int
+  fecha_sesion        DateTime @db.Date
+  duracion_minutos    Int
+  paginas_leidas      Int
+
+  progreso_usuario ProgresoUsuario @relation(fields: [progreso_usuario_id], references: [id], onDelete: Cascade)
+
+  @@map("sesiones_lectura")
+}
+
+model Anotacion {
+  id                  Int      @id @default(autoincrement())
+  progreso_usuario_id Int
+  marcador_posicion   String   @db.VarChar(255)
+  texto_resaltado     String   @db.Text
+  nota_usuario        String?  @db.Text
+  color_hex           String   @db.VarChar(7)
+  creado_en           DateTime @default(now())
+
+  progreso_usuario ProgresoUsuario @relation(fields: [progreso_usuario_id], references: [id], onDelete: Cascade)
+
+  @@map("anotaciones")
+}
+
+// 6. Gamificación
+model MetaLiteraria {
+  id              Int     @id @default(autoincrement())
+  usuario_id      Int
+  anio            Int
+  libros_objetivo Int
+
+  usuario Usuario @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
+
+  @@unique([usuario_id, anio])
+  @@map("metas_literarias")
+}
+
+model Logro {
+  id              Int            @id @default(autoincrement())
+  nombre          String         @db.VarChar(255)
+  descripcion     String         @db.VarChar(255)
+  codigo_insignia String         @unique @db.VarChar(100)
+  usuarios        LogroUsuario[]
+
+  @@map("logros")
+}
+
+model LogroUsuario {
+  id              Int      @id @default(autoincrement())
+  usuario_id      Int
+  logro_id        Int
+  desbloqueado_en DateTime @default(now())
+
+  usuario Usuario @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
+  logro   Logro   @relation(fields: [logro_id], references: [id], onDelete: Cascade)
+
+  @@unique([usuario_id, logro_id])
+  @@map("logros_usuario")
+}
