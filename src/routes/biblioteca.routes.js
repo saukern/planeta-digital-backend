@@ -7,6 +7,12 @@ import {
 	eliminarDeBiblioteca,
 	importarDesdeGutendex
 } from '../controllers/biblioteca.controller.js';
+import {
+	actualizarProgreso,
+	registrarSesionLectura,
+	crearAnotacion,
+	obtenerAnotaciones
+} from '../controllers/progreso.controller.js';
 import { autenticarToken } from '../middlewares/auth.middleware.js';
 
 const router = Router();
@@ -28,5 +34,11 @@ router.post('/subir', upload.fields([
 router.put('/archivo/:id', editarArchivo);
 router.delete('/:id', eliminarDeBiblioteca);
 router.post('/importar-gutendex', importarDesdeGutendex);
+
+// Rutas de Progreso y Anotaciones
+router.put('/progreso/:id', actualizarProgreso);
+router.post('/progreso/:id/sesion', registrarSesionLectura);
+router.post('/anotaciones', crearAnotacion);
+router.get('/anotaciones/:progresoUsuarioId', obtenerAnotaciones);
 
 export default router;
