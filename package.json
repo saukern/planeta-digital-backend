@@ -9,6 +9,7 @@
     "test-db": "node --env-file=.env tests/probar-conexion.js",
     "test-prisma": "node --env-file=.env tests/probar-prisma.js",
     "test-registro": "node --env-file=.env tests/probar-registro.js",
+    "test-google": "node --env-file=.env tests/probar-google.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -27,6 +28,7 @@
     "@prisma/client": "^7.8.0",
     "bcryptjs": "^3.0.3",
     "express": "^5.2.1",
+    "google-auth-library": "^10.7.0",
     "jsonwebtoken": "^9.0.3",
     "pg": "^8.22.0"
   },
