@@ -132,8 +132,30 @@ async function test() {
     console.log('Nuevo Título:', resEditar.body.archivo.titulo);
     console.log('Nuevo Autor:', resEditar.body.archivo.libro.autor);
 
-    if (resEditar.statusCode === 200 && resEditar.body.archivo.titulo === 'Don Quijote (Editado)') {
-      console.log('✔ Edición de metadatos exitosa.');
+    // Editar Metadatos del Documento
+    console.log('\n--- Prueba 4.2: Editar Metadatos del Documento ---');
+    const reqEditarDoc = {
+      ...mockReq,
+      params: { id: progresoDoc.archivo_id.toString() },
+      body: {
+        titulo: 'Apuntes de Web II (Editado)',
+        materia: 'Desarrollo Web Backend',
+        tipo_documento: 'SLIDES'
+      }
+    };
+    const resEditarDoc = { ...mockRes };
+    await editarArchivo(reqEditarDoc, resEditarDoc);
+    console.log('Resultado:', resEditarDoc.statusCode);
+    console.log('Mensaje:', resEditarDoc.body.mensaje);
+    console.log('Nuevo Título:', resEditarDoc.body.archivo.titulo);
+    console.log('Nueva Materia:', resEditarDoc.body.archivo.documento.materia);
+    console.log('Nuevo Tipo:', resEditarDoc.body.archivo.documento.tipo_documento);
+
+    if (
+      resEditar.statusCode === 200 && resEditar.body.archivo.titulo === 'Don Quijote (Editado)' &&
+      resEditarDoc.statusCode === 200 && resEditarDoc.body.archivo.documento.materia === 'Desarrollo Web Backend'
+    ) {
+      console.log('✔ Edición de metadatos de libro y documento exitosa.');
     } else {
       console.error('✘ Falló edición de metadatos.');
     }
