@@ -213,3 +213,27 @@ export const login = async (req, res) => {
     return res.status(500).json({ error: 'Error interno del servidor al procesar el inicio de sesión' });
   }
 };
+
+export const desactivarCuenta = async (req, res) => {
+  try {
+    const usuarioId = req.usuario.id;
+
+    const usuarioActualizado = await prisma.usuario.update({
+      where: { id: usuarioId },
+      data: { estado: 'INACTIVE' }
+    });
+
+    return res.status(200).json({
+      mensaje: 'Cuenta desactivada con éxito (borrado lógico)',
+      usuario: {
+        id: usuarioActualizado.id,
+        nombre_usuario: usuarioActualizado.nombre_usuario,
+        estado: usuarioActualizado.estado
+      }
+    });
+
+  } catch (error) {
+    console.error('Error al desactivar cuenta:', error);
+    return res.status(500).json({ error: 'Error interno del servidor al desactivar la cuenta' });
+  }
+};

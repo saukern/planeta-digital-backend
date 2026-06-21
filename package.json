@@ -12,6 +12,7 @@
     "test-google": "node --env-file=.env tests/probar-google.js",
     "test-login": "node --env-file=.env tests/probar-login.js",
     "test-middleware": "node --env-file=.env tests/probar-middleware.js",
+    "test-desactivacion": "node --env-file=.env tests/probar-desactivacion.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
