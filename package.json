@@ -16,6 +16,7 @@
     "test-biblioteca": "node --env-file=.env tests/probar-biblioteca.js",
     "test-gutendex": "node --env-file=.env tests/probar-gutendex.js",
     "test-progreso": "node --env-file=.env tests/probar-progreso.js",
+    "test-meta": "node --env-file=.env tests/probar-meta.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

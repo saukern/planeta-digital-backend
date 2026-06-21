@@ -1,6 +1,7 @@
 import express from 'express';
 import authRouter from './routes/auth.routes.js';
 import bibliotecaRouter from './routes/biblioteca.routes.js';
+import gamificacionRouter from './routes/gamificacion.routes.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -9,6 +10,7 @@ app.use(express.json());
 
 app.use('/api/auth', authRouter);
 app.use('/api/biblioteca', bibliotecaRouter);
+app.use('/api/gamificacion', gamificacionRouter);
 
 app.get('/', (req, res) => {
   res.json({ mensaje: 'Servidor de Constelación de Libros activo' });
