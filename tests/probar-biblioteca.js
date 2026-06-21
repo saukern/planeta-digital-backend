@@ -160,40 +160,10 @@ async function test() {
       console.error('✘ Falló edición de metadatos.');
     }
 
-    // 6. Prueba 5: Eliminar de la Biblioteca (Limpieza en cascada)
-    console.log('\n--- Prueba 5: Eliminar de Biblioteca ---');
-    
-    // Eliminar el Libro
-    const reqDeleteLibro = {
-      ...mockReq,
-      params: { id: progresoLibro.id.toString() }
-    };
-    const resDeleteLibro = { ...mockRes };
-    await eliminarDeBiblioteca(reqDeleteLibro, resDeleteLibro);
-    console.log('Eliminar Libro - Mensaje:', resDeleteLibro.body.mensaje);
-    console.log('¿Eliminado físicamente de la nube?:', resDeleteLibro.body.archivoEliminadoFisicamente);
-
-    // Eliminar el Documento
-    const reqDeleteDoc = {
-      ...mockReq,
-      params: { id: progresoDoc.id.toString() }
-    };
-    const resDeleteDoc = { ...mockRes };
-    await eliminarDeBiblioteca(reqDeleteDoc, resDeleteDoc);
-    console.log('Eliminar Documento - Mensaje:', resDeleteDoc.body.mensaje);
-    console.log('¿Eliminado físicamente de la nube?:', resDeleteDoc.body.archivoEliminadoFisicamente);
-
-    if (resDeleteLibro.statusCode === 200 && resDeleteDoc.statusCode === 200) {
-      console.log('✔ Eliminar de biblioteca exitoso.');
-    } else {
-      console.error('✘ Falló eliminar de biblioteca.');
-    }
-
-    // 7. Limpieza de base de datos
-    await prisma.usuario.deleteMany({
-      where: { correo: 'biblioteca_test@correo.com' }
-    });
-    console.log('\nBase de datos limpia.');
+    // 6. Omitimos la eliminación para conservar los archivos en Supabase Storage y la BD
+    console.log('\n--- Conservando archivos en Supabase y Base de Datos para inspección ---');
+    console.log('Puedes revisar el bucket de Supabase para ver los archivos subidos.');
+    console.log('El usuario de prueba es: biblioteca_test@correo.com');
 
   } catch (err) {
     console.error('Error durante la prueba:', err);
