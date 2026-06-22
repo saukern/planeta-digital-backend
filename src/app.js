@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors';
 import authRouter from './routes/auth.routes.js';
 import bibliotecaRouter from './routes/biblioteca.routes.js';
 import logrosRouter from './routes/logros.routes.js';
@@ -6,6 +7,7 @@ import logrosRouter from './routes/logros.routes.js';
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+app.use(cors());
 app.use(express.json());
 
 app.use('/api/auth', authRouter);
