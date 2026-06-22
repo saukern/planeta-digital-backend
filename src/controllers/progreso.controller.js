@@ -1,5 +1,5 @@
 import { prisma } from '../config/db.js';
-import { evaluarYDesbloquearLogros } from './gamificacion.controller.js';
+import { evaluarYDesbloquearLogros } from './logros.controller.js';
 
 export const actualizarProgreso = async (req, res) => {
   try {

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { establecerMeta, obtenerMeta, obtenerLogrosUsuario } from '../controllers/gamificacion.controller.js';
+import { establecerMeta, obtenerMeta, obtenerLogrosUsuario } from '../controllers/logros.controller.js';
 import { autenticarToken } from '../middlewares/auth.middleware.js';
 
 const router = Router();

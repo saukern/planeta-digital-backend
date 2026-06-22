@@ -1,4 +1,4 @@
-import { establecerMeta, obtenerMeta } from '../src/controllers/gamificacion.controller.js';
+import { establecerMeta, obtenerMeta } from '../src/controllers/logros.controller.js';
 import { subirArchivoPersonal } from '../src/controllers/biblioteca.controller.js';
 import { actualizarProgreso } from '../src/controllers/progreso.controller.js';
 import { prisma, pool } from '../src/config/db.js';
