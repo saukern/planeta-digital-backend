@@ -282,7 +282,11 @@ export const importarDesdeGutendex = async (req, res) => {
 		}
 
 		//Obtenemos los  metadatos de la API de Gutendex
-		const responseMeta = await fetch(`https://gutendex.com/books/${gutenbergId}`);
+		const responseMeta = await fetch(`https://gutendex.com/books/${gutenbergId}`, {
+			headers: {
+				'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
+			}
+		});
 		if (!responseMeta.ok) {
 			return res.status(404).json({ error: 'Libro no encontrado en Project Gutenberg.' });
 		}
@@ -310,7 +314,11 @@ export const importarDesdeGutendex = async (req, res) => {
 		const rawImageUrl = imageKey ? formats[imageKey] : null;
 
 		// 3. Descargar el archivo EPUB en memoria
-		const responseFile = await fetch(epubUrl);
+		const responseFile = await fetch(epubUrl, {
+			headers: {
+				'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
+			}
+		});
 		if (!responseFile.ok) {
 			return res.status(500).json({ error: 'Error al descargar el archivo EPUB desde Project Gutenberg.' });
 		}
@@ -333,7 +341,11 @@ export const importarDesdeGutendex = async (req, res) => {
 		let urlPortada = null;
 		if (rawImageUrl) {
 			try {
-				const responseImg = await fetch(rawImageUrl);
+				const responseImg = await fetch(rawImageUrl, {
+					headers: {
+						'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
+					}
+				});
 				if (responseImg.ok) {
 					const imgArrayBuffer = await responseImg.arrayBuffer();
 					const imgBuffer = Buffer.from(imgArrayBuffer);
