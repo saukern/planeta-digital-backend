@@ -172,3 +172,34 @@ export const obtenerAnotaciones = async (req, res) => {
     return res.status(500).json({ error: 'Error interno del servidor al obtener anotaciones.' });
   }
 };
+
+export const eliminarAnotacion = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const anotacionId = Number(id);
+
+    const anotacion = await prisma.anotacion.findUnique({
+      where: { id: anotacionId },
+      include: { progreso_usuario: true }
+    });
+
+    if (!anotacion) {
+      return res.status(404).json({ error: 'Anotación no encontrada.' });
+    }
+
+    if (anotacion.progreso_usuario.usuario_id !== req.usuario.id) {
+      return res.status(403).json({ error: 'No tienes permisos para eliminar esta anotación.' });
+    }
+
+    await prisma.anotacion.delete({
+      where: { id: anotacionId }
+    });
+
+    return res.status(200).json({ mensaje: 'Anotación eliminada con éxito.' });
+
+  } catch (error) {
+    console.error('Error al eliminar anotación:', error);
+    return res.status(500).json({ error: 'Error interno del servidor al eliminar la anotación.' });
+  }
+};
+

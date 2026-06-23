@@ -11,7 +11,8 @@ import {
 	actualizarProgreso,
 	registrarSesionLectura,
 	crearAnotacion,
-	obtenerAnotaciones
+	obtenerAnotaciones,
+	eliminarAnotacion
 } from '../controllers/progreso.controller.js';
 import { autenticarToken } from '../middlewares/auth.middleware.js';
 
@@ -40,5 +41,6 @@ router.put('/progreso/:id', actualizarProgreso);
 router.post('/progreso/:id/sesion', registrarSesionLectura);
 router.post('/anotaciones', crearAnotacion);
 router.get('/anotaciones/:progresoUsuarioId', obtenerAnotaciones);
+router.delete('/anotaciones/:id', eliminarAnotacion);
 
 export default router;
