@@ -275,43 +275,53 @@ export const eliminarDeBiblioteca = async (req, res) => {
 
 export const importarDesdeGutendex = async (req, res) => {
 	try {
+		console.log('--- NUEVA PETICION DE IMPORTACION ---');
+		console.log('Body recibido en backend:', req.body);
 		const { gutenbergId } = req.body;
 
 		if (!gutenbergId) {
 			return res.status(400).json({ error: 'El gutenbergId es obligatorio.' });
 		}
 
-		//Obtenemos los  metadatos de la API de Gutendex
-		const responseMeta = await fetch(`https://gutendex.com/books/${gutenbergId}`, {
-			headers: {
-				'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
+		let { titulo, autor, genero, epubUrl, rawImageUrl } = req.body;
+
+		// Si no nos mandaron los metadatos desde el frontend, los consultamos a la API de Gutendex
+		if (!titulo || !epubUrl) {
+			try {
+				const responseMeta = await fetch(`https://gutendex.com/books/${gutenbergId}`, {
+					headers: {
+						'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
+					}
+				});
+				if (!responseMeta.ok) {
+					console.error(`Error de Gutendex API. Estatus: ${responseMeta.status}. Texto: ${responseMeta.statusText}`);
+					return res.status(404).json({ error: 'Libro no encontrado en Project Gutenberg.' });
+				}
+				const bookData = await responseMeta.json();
+
+				titulo = bookData.title || 'Título Desconocido';
+				autor = bookData.authors && bookData.authors.length > 0
+					? bookData.authors.map(a => a.name).join(', ')
+					: 'Autor Desconocido';
+				genero = bookData.subjects && bookData.subjects.length > 0
+					? bookData.subjects.slice(0, 2).join(', ')
+					: 'General';
+
+				const formats = bookData.formats || {};
+				const epubKey = Object.keys(formats).find(key => key.toLowerCase().includes('epub'));
+				epubUrl = epubKey ? formats[epubKey] : null;
+
+				const imageKey = Object.keys(formats).find(key => key.toLowerCase().includes('image/jpeg') || key.toLowerCase().includes('image/png'));
+				rawImageUrl = imageKey ? formats[imageKey] : null;
+			} catch (apiError) {
+				console.error('Error al conectar con Gutendex:', apiError);
+				return res.status(502).json({ error: 'La API de Gutenberg está bloqueando la conexión del servidor. Inténtalo de nuevo.' });
 			}
-		});
-		if (!responseMeta.ok) {
-			return res.status(404).json({ error: 'Libro no encontrado en Project Gutenberg.' });
 		}
-		const bookData = await responseMeta.json();
-
-		const titulo = bookData.title || 'Título Desconocido';
-		const autor = bookData.authors && bookData.authors.length > 0
-			? bookData.authors.map(a => a.name).join(', ')
-			: 'Autor Desconocido';
-		const genero = bookData.subjects && bookData.subjects.length > 0
-			? bookData.subjects.slice(0, 2).join(', ')
-			: 'General';
-
-		// Buscamos formato de tipo EPUB
-		const formats = bookData.formats || {};
-		const epubKey = Object.keys(formats).find(key => key.toLowerCase().includes('epub'));
-		const epubUrl = epubKey ? formats[epubKey] : null;
 
 		if (!epubUrl) {
 			return res.status(400).json({ error: 'El libro no tiene un formato EPUB disponible para descargar.' });
 		}
-
-		// Buscar formato de tipo imagen (portada)
-		const imageKey = Object.keys(formats).find(key => key.toLowerCase().includes('image/jpeg') || key.toLowerCase().includes('image/png'));
-		const rawImageUrl = imageKey ? formats[imageKey] : null;
 
 		// 3. Descargar el archivo EPUB en memoria
 		const responseFile = await fetch(epubUrl, {
